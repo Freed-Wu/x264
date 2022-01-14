@@ -277,14 +277,23 @@ $(OBJCLI): CFLAGS += $(CFLAGSCLI)
 
 $(OBJS) $(OBJASM) $(OBJSO) $(OBJCLI) $(OBJCHK) $(OBJCHK_8) $(OBJCHK_10) $(OBJEXAMPLE): .depend
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< $(CC_O)
+%.ll: %.c
+	$(CC) $(CFLAGS) $(EMIT_LLVM) -S $< $(CC_O)
 
-%-8.o: %.c
-	$(CC) $(CFLAGS) -c $< $(CC_O) -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8
+%-8.ll: %.c
+	$(CC) $(CFLAGS) $(EMIT_LLVM) -S $< $(CC_O) -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8
 
-%-10.o: %.c
-	$(CC) $(CFLAGS) -c $< $(CC_O) -DHIGH_BIT_DEPTH=1 -DBIT_DEPTH=10
+%-10.ll: %.c
+	$(CC) $(CFLAGS) $(EMIT_LLVM) -S $< $(CC_O) -DHIGH_BIT_DEPTH=1 -DBIT_DEPTH=10
+
+%.o: %.ll
+	$(LLC) $(LLCFLAGS) $< $(CC_O)
+
+%-8.o: %-8.ll
+	$(LLC) $(LLCFLAGS) $< $(CC_O)
+
+%-10.o: %-10.ll
+	$(LLC) $(LLCFLAGS) $< $(CC_O)
 
 %.o: %.asm common/x86/x86inc.asm common/x86/x86util.asm
 	$(AS) $(ASFLAGS) -o $@ $<

@@ -874,6 +874,10 @@ case $host_cpu in
         ;;
 esac
 
+if [ -n "$LD" ]; then
+  LDFLAGS="-lc $libm"
+fi
+
 [ "$vsx" != "yes" ] && vsx="no"
 
 if [ $SYS = WINDOWS ]; then
@@ -1482,7 +1486,9 @@ if [ $compiler_style = MS ]; then
 else # gcc/icc
     DEPMM="$DEPMM -g0"
     AR="$AR rc "
-    LD="$CC -o "
+    if [ -z "$LD" ]; then
+      LD="$CC -no-pie -o "
+    fi
     LIBX264=libx264.a
     [ -n "$RC" ] && RCFLAGS="$RCFLAGS -I. -o "
 fi
@@ -1514,6 +1520,14 @@ else
     PROF_GEN_LD="-fprofile-generate"
     PROF_USE_CC="-fprofile-use"
     PROF_USE_LD="-fprofile-use"
+fi
+
+EMIT_LLVM="-emit-llvm -gdwarf-2"
+LLC=${LLC:-llc}
+LLCFLAGS="-filetype=obj -relocation-model=static"
+if [ -n "$DSP" ]; then
+  EMIT_LLVM="$EMIT_LLVM -target dsp"
+  LLCFLAGS="$LLCFLAGS -march=dsp -mcpu=dspse"
 fi
 
 # generate config files
@@ -1556,6 +1570,9 @@ PROF_GEN_LD=$PROF_GEN_LD
 PROF_USE_CC=$PROF_USE_CC
 PROF_USE_LD=$PROF_USE_LD
 HAVE_OPENCL=$opencl
+EMIT_LLVM=$EMIT_LLVM
+LLC=$LLC
+LLCFLAGS=$LLCFLAGS
 EOF
 
 if [ $compiler_style = MS ]; then
