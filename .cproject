@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+    	
+    <storageModule moduleId="org.eclipse.cdt.core.settings">
+        		
+        <cconfiguration id="example.toolchain.configuration.release.524943017">
+            			
+            <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="example.toolchain.configuration.release.524943017" moduleId="org.eclipse.cdt.core.settings" name="Release">
+                				
+                <externalSettings/>
+                				
+                <extensions>
+                    					
+                    <extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+                    				
+                </extensions>
+                			
+            </storageModule>
+            			
+            <storageModule moduleId="cdtBuildSystem" version="4.0.0">
+                				
+                <configuration artifactExtension="out" artifactName="${ProjName}" buildProperties="" cleanCommand="rm -f" description="" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser" id="example.toolchain.configuration.release.524943017" name="Release" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=" parent="example.toolchain.configuration.release">
+                    					
+                    <folderInfo id="example.toolchain.configuration.release.524943017." name="/" resourcePath="">
+                        						
+                        <toolChain id="example.toolchain.toolchain.679557839" name="Swift Tool-chain" superClass="example.toolchain.toolchain">
+                            							
+                            <targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="example.toolchain.targetplatform.1506301774" isAbstract="false" name="Swift Target Platform" osList="win32" superClass="example.toolchain.targetplatform"/>
+                            							
+                            <builder buildPath="${workspace_loc:/x264}/Release" id="example.toolchain.builder.1229902495" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Swift Builder" superClass="example.toolchain.builder"/>
+                            							
+                            <tool id="example.toolchain.compiler.1838744739" name="Clang" superClass="example.toolchain.compiler">
+                                								
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="example.toolchain.compiler.general.paths.995656807" name="Include paths" superClass="example.toolchain.compiler.general.paths" useByScannerDiscovery="true" valueType="symbolFiles">
+                                    									
+                                    <listOptionValue builtIn="false" value="${TOOLHOME}\include"/>
+                                    									
+                                    <listOptionValue builtIn="false" value=".."/>
+                                    								
+                                </option>
+                                								
+                                <option id="example.toolchain.compiler.general.otherFlags.1819518695" name="Other flags" superClass="example.toolchain.compiler.general.otherFlags" useByScannerDiscovery="false" value="-S -DSIZE_MAX=0xffffffffffffffffUL -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8" valueType="string"/>
+                                								
+                                <inputType id="example.toolchain.compiler.input.1451487114" name="Compiler Input" superClass="example.toolchain.compiler.input"/>
+                                							
+                            </tool>
+                            							
+                            <tool id="example.toolchain.llc.1861078576" name="Llc" superClass="example.toolchain.llc"/>
+                            							
+                            <tool id="example.toolchain.linker.1224435153" name="Linker" superClass="example.toolchain.linker"/>
+                            							
+                            <tool id="example.toolchain.assembler.1109161584" name="Assembler" superClass="example.toolchain.assembler"/>
+                            						
+                        </toolChain>
+                        					
+                    </folderInfo>
+                    					
+                    <fileInfo id="example.toolchain.configuration.release.524943017.1886787999" name="x264cli.h" rcbsApplicability="disable" resourcePath="x264cli.h" toolsToInvoke=""/>
+                    					
+                    <sourceEntries>
+                        						
+                        <entry excluding="encoder/slicetype-cl.c|encoder/slicetype.c|encoder/rdo.c|common/threadpool.c|common/opencl.c|common/win32thread.c|example.c|common/x86|common/ppc|common/opencl|common/mips|common/arm|common/aarch64|autocomplete.c|x264.c|x264dll.c|tools|output|input|filters|extras|doc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        					
+                    </sourceEntries>
+                    				
+                </configuration>
+                			
+            </storageModule>
+            			
+            <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+            		
+        </cconfiguration>
+        	
+    </storageModule>
+    	
+    <storageModule moduleId="cdtBuildSystem" version="4.0.0">
+        		
+        <project id="x264.example.toolchain.executable.336017354" name="Swift Executable" projectType="example.toolchain.executable"/>
+        	
+    </storageModule>
+    	
+    <storageModule moduleId="scannerConfiguration">
+        		
+        <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+        	
+    </storageModule>
+    	
+    <storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+    	
+    <storageModule moduleId="refreshScope" versionNumber="2">
+        		
+        <configuration configurationName="Release">
+            			
+            <resource resourceType="PROJECT" workspacePath="/x264"/>
+            		
+        </configuration>
+        	
+    </storageModule>
+    	
+    <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+    	
+    <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+    
+</cproject>
