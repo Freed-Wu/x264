@@ -31,7 +31,9 @@
 #include <sys/types.h>
 #include <sys/timeb.h>
 #else
+#ifndef SYS_DSP
 #include <sys/time.h>
+#endif
 #endif
 #include <time.h>
 
@@ -51,9 +53,13 @@ int64_t x264_mdate( void )
     clock_gettime( CLOCK_MONOTONIC, &ts );
     return (int64_t)ts.tv_sec * 1000000 + (int64_t)ts.tv_nsec / 1000;
 #else
+#ifdef SYS_DSP
+    return 0;
+#else
     struct timeval tv_date;
     gettimeofday( &tv_date, NULL );
     return (int64_t)tv_date.tv_sec * 1000000 + (int64_t)tv_date.tv_usec;
+#endif
 #endif
 }
 

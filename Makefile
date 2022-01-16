@@ -344,6 +344,9 @@ endif
 ifneq ($(findstring HAVE_BITDEPTH10 1, $(CONFIG)),)
 	@$(foreach SRC, $(addprefix $(SRCPATH)/, $(SRCS_X) $(SRCCLI_X) $(SRCCHK_X)), $(CC) $(CFLAGS) $(SRC) $(DEPMT) $(SRC:$(SRCPATH)/%.c=%-10.o) $(DEPMM) 1>> .depend;)
 endif
+ifdef TOOLHOME
+	sed -i 's=$(TOOLHOME)\S*==g' $@
+endif
 endif
 
 config.mak:
@@ -390,6 +393,7 @@ clean:
 	rm -f checkasm8$(EXE) checkasm10$(EXE) $(OBJCHK) $(OBJCHK_8) $(OBJCHK_10)
 	rm -f example$(EXE) $(OBJEXAMPLE)
 	rm -f $(OBJPROF:%.o=%.gcda) $(OBJPROF:%.o=%.gcno) *.dyn pgopti.dpi pgopti.dpi.lock *.pgd *.pgc
+	rm -f linkMapFile
 
 distclean: clean
 	rm -f config.mak x264_config.h config.h config.log x264.pc x264.def

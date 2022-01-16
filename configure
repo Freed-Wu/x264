@@ -132,6 +132,9 @@ cl_ldflags() {
 }
 
 cc_check() {
+    if [ -n "$TOOLHOME" ]; then
+        return 0
+    fi
     if [ -z "$3$4" ]; then
         if [ -z "$1$2" ]; then
             log_check "whether $CC works"
@@ -186,6 +189,9 @@ cc_check() {
 }
 
 cpp_check() {
+    if [ -n "$TOOLHOME" ]; then
+        return 0
+    fi
     log_check "whether $3 is true"
     rm -f conftest.c
     for arg in $1; do
@@ -215,6 +221,9 @@ cpp_check() {
 }
 
 as_check() {
+    if [ -n "$TOOLHOME" ]; then
+        return 0
+    fi
     log_check "whether $AS supports $1"
     echo "$1" > conftest$AS_EXT
     as_cmd="$AS conftest$AS_EXT $ASFLAGS $2 -o conftest.o"
@@ -238,6 +247,9 @@ as_check() {
 }
 
 rc_check() {
+    if [ -n "$TOOLHOME" ]; then
+        return 0
+    fi
     log_check "whether $RC works"
     echo "$1" > conftest.rc
     if [ $compiler = GNU ]; then
@@ -265,6 +277,9 @@ rc_check() {
 }
 
 pkg_check() {
+    if [ -n "$TOOLHOME" ]; then
+        return 0
+    fi
     log_check "for packages: $1"
     pkg_cmd="$PKGCONFIG --exists $1"
     if $pkg_cmd >conftest.log 2>&1; then
@@ -576,7 +591,9 @@ if [ "x$host" = x ]; then
     host="$(${SRCPATH}/config.guess)"
 fi
 # normalize a triplet into a quadruplet
-host="$(${SRCPATH}/config.sub $host)"
+if [ -z "$TOOLHOME" ]; then
+    host="$(${SRCPATH}/config.sub $host)"
+fi
 
 # split $host
 host_cpu="${host%%-*}"
@@ -729,6 +746,9 @@ case $host_os in
     *haiku*)
         SYS="HAIKU"
         ;;
+    *dsp*)
+        SYS="DSP"
+        ;;
     *)
         die "Unknown system $host, edit the configure"
         ;;
@@ -874,7 +894,7 @@ case $host_cpu in
         ;;
 esac
 
-if [ -n "$LD" ]; then
+if [ -n "$LD" ] && [ -z "$TOOLHOME" ]; then
   LDFLAGS="-lc $libm"
 fi
 
@@ -1037,16 +1057,18 @@ define SYS_$SYS
 define STACK_ALIGNMENT $stack_alignment
 ASFLAGS="$ASFLAGS -DSTACK_ALIGNMENT=$stack_alignment"
 
-# skip endianness check for Intel Compiler and MSVS, as all supported platforms are little. each have flags that will cause the check to fail as well
-CPU_ENDIAN="little-endian"
-if [ $compiler = GNU ]; then
-    echo "int i[2] = {0x42494745,0}; double f[2] = {0x1.0656e6469616ep+102,0};" > conftest.c
-    $CC $CFLAGS -fno-lto conftest.c -c -o conftest.o 2>/dev/null || die "endian test failed"
-    if (${STRINGS} -a conftest.o | grep -q BIGE) && (${STRINGS} -a conftest.o | grep -q FPendian) ; then
-        define WORDS_BIGENDIAN
-        CPU_ENDIAN="big-endian"
-    elif !(${STRINGS} -a conftest.o | grep -q EGIB && ${STRINGS} -a conftest.o | grep -q naidnePF) ; then
-        die "endian test failed"
+if [ -z "$TOOLHOME" ]; then
+    # skip endianness check for Intel Compiler and MSVS, as all supported platforms are little. each have flags that will cause the check to fail as well
+    CPU_ENDIAN="little-endian"
+    if [ $compiler = GNU ]; then
+        echo "int i[2] = {0x42494745,0}; double f[2] = {0x1.0656e6469616ep+102,0};" > conftest.c
+        $CC $CFLAGS -fno-lto conftest.c -c -o conftest.o 2>/dev/null || die "endian test failed"
+        if (${STRINGS} -a conftest.o | grep -q BIGE) && (${STRINGS} -a conftest.o | grep -q FPendian) ; then
+            define WORDS_BIGENDIAN
+            CPU_ENDIAN="big-endian"
+        elif !(${STRINGS} -a conftest.o | grep -q EGIB && ${STRINGS} -a conftest.o | grep -q naidnePF) ; then
+            die "endian test failed"
+        fi
     fi
 fi
 
@@ -1123,14 +1145,16 @@ if cc_check 'string.h' '' 'strtok_r(0, 0, 0);' ; then
     define HAVE_STRTOK_R
 fi
 
-if cc_check 'time.h' '' 'clock_gettime(CLOCK_MONOTONIC, 0);' ; then
-    define HAVE_CLOCK_GETTIME
-elif cc_check 'time.h' '-lrt' 'clock_gettime(CLOCK_MONOTONIC, 0);' ; then
-    define HAVE_CLOCK_GETTIME
-    LDFLAGS="$LDFLAGS -lrt"
+if [ -z "$TOOLHOME" ] ; then
+    if cc_check 'time.h' '' 'clock_gettime(CLOCK_MONOTONIC, 0);' ; then
+        define HAVE_CLOCK_GETTIME
+    elif cc_check 'time.h' '-lrt' 'clock_gettime(CLOCK_MONOTONIC, 0);' ; then
+        define HAVE_CLOCK_GETTIME
+        LDFLAGS="$LDFLAGS -lrt"
+    fi
 fi
 
-if [ "$SYS" != "WINDOWS" ] && cpp_check "sys/mman.h unistd.h" "" "defined(MAP_PRIVATE)"; then
+if [ "$SYS" != "WINDOWS" ] && [ -z "$TOOLHOME" ] && cpp_check "sys/mman.h unistd.h" "" "defined(MAP_PRIVATE)"; then
     define HAVE_MMAP
 fi
 
@@ -1525,7 +1549,7 @@ fi
 EMIT_LLVM="-emit-llvm -gdwarf-2"
 LLC=${LLC:-llc}
 LLCFLAGS="-filetype=obj -relocation-model=static"
-if [ -n "$DSP" ]; then
+if [ -n "$TOOLHOME" ]; then
   EMIT_LLVM="$EMIT_LLVM -target dsp"
   LLCFLAGS="$LLCFLAGS -march=dsp -mcpu=dspse"
 fi

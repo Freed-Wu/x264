@@ -31,12 +31,14 @@
 #define _LARGEFILE_SOURCE 1
 #define _FILE_OFFSET_BITS 64
 #include <stdio.h>
-#include <sys/stat.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdlib.h>
 
 #include "config.h"
+#ifndef SYS_DSP
+#include <sys/stat.h>
+#endif
 
 #ifdef __INTEL_COMPILER
 #include <mathimf.h>
@@ -63,7 +65,9 @@
 #define strtok_r strtok_s
 #define S_ISREG(x) (((x) & S_IFMT) == S_IFREG)
 #else
+#ifndef SYS_DSP
 #include <strings.h>
+#endif
 #endif
 
 #if !defined(va_copy) && defined(__INTEL_COMPILER)
@@ -261,19 +265,27 @@ static inline int x264_is_regular_file_path( const char *path )
 
 static inline int x264_is_regular_file_path( const char *filename )
 {
+#ifdef SYS_DSP
+    return 0;
+#else
     x264_struct_stat file_stat;
     if( x264_stat( filename, &file_stat ) )
         return 1;
     return S_ISREG( file_stat.st_mode );
+#endif
 }
 #endif
 
 static inline int x264_is_regular_file( FILE *filehandle )
 {
+#ifdef SYS_DSP
+    return 0;
+#else
     x264_struct_stat file_stat;
     if( x264_fstat( fileno( filehandle ), &file_stat ) )
         return 1;
     return S_ISREG( file_stat.st_mode );
+#endif
 }
 
 #define x264_glue3_expand(x,y,z) x##_##y##_##z
