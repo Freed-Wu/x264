@@ -50,3 +50,4 @@ common/oclobj.h
 x264_lookahead.clbin
 
 /linkMapFile
+/.settings/
