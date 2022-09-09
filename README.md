@@ -31,7 +31,7 @@
 
 ## 准备
 
-编译此工程必须要有 \<config.h>, \<x264_config.h>。 [dsp-swift-project-with-config]
+编译此工程必须要有 `config.h`, `x264_config.h`。 [dsp-swift-project-with-config]
 是一个提供了这些文件的分支。如果是其他分支，需要：
 
 1. 安装 [Msys2](https://www.msys2.org/)
