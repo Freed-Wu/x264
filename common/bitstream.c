@@ -48,6 +48,9 @@ static uint8_t *nal_escape_c( uint8_t *dst, uint8_t *src, uint8_t *end )
 #if HAVE_AARCH64
 #include "aarch64/bitstream.h"
 #endif
+#if HAVE_TIC6X
+#include "tic6x/bitstream.h"
+#endif
 
 /****************************************************************************
  * x264_nal_encode:
@@ -162,5 +165,8 @@ void x264_bitstream_init( uint32_t cpu, x264_bitstream_function_t *pf )
 #if HAVE_AARCH64
     if( cpu&X264_CPU_NEON )
         pf->nal_escape = x264_nal_escape_neon;
+#endif
+#if HAVE_TIC6X
+    pf->nal_escape = x264_nal_escape_ti;
 #endif
 }

@@ -41,6 +41,23 @@
 #if HAVE_MSA
 #   include "mips/dct.h"
 #endif
+#if HAVE_TIC6X
+#   include "tic6x/dct.h"
+static void add16x16_idct_ti( pixel *p_dst, dctcoef dct[16][16] )
+{
+    x264_add8x8_idct_ti( &p_dst[  0], &dct[ 0] );
+    x264_add8x8_idct_ti( &p_dst[  8], &dct[ 4] );
+    x264_add8x8_idct_ti( &p_dst[256], &dct[ 8] ); /* p_dst[8*FDEC_STRIDE+0] */
+    x264_add8x8_idct_ti( &p_dst[264], &dct[12] ); /* p_dst[8*FDEC_STRIDE+8] */
+}
+static void sub16x16_dct_ti( dctcoef dct[16][16], pixel *pix1, pixel *pix2 )
+{
+    x264_sub8x8_dct_ti( &dct[ 0], &pix1[  0], &pix2[  0] );
+    x264_sub8x8_dct_ti( &dct[ 4], &pix1[  8], &pix2[  8] );
+    x264_sub8x8_dct_ti( &dct[ 8], &pix1[128], &pix2[256] ); /* pix1[8*FENC_STRIDE+0], pix2[8*FDEC_STRIDE+0] */
+    x264_sub8x8_dct_ti( &dct[12], &pix1[136], &pix2[264] ); /* pix1[8*FENC_STRIDE+8], pix2[8*FDEC_STRIDE+8] */
+}
+#endif
 
 static void dct4x4dc( dctcoef d[16] )
 {
@@ -728,6 +745,22 @@ void x264_dct_init( uint32_t cpu, x264_dct_function_t *dctf )
 #endif
 
 #endif // HIGH_BIT_DEPTH
+#if HAVE_TIC6X
+    dctf->sub4x4_dct  = x264_sub4x4_dct_ti;
+    dctf->add4x4_idct = x264_add4x4_idct_ti;
+
+    dctf->sub8x8_dct    = x264_sub8x8_dct_ti;
+    dctf->sub8x8_dct_dc = x264_sub8x8_dct_dc_ti;
+    dctf->add8x8_idct   = x264_add8x8_idct_ti;
+    dctf->add8x8_idct_dc = x264_add8x8_idct_dc_ti;
+
+    dctf->sub16x16_dct  = sub16x16_dct_ti;
+    dctf->add16x16_idct = add16x16_idct_ti;
+    dctf->add16x16_idct_dc = x264_add16x16_idct_dc_ti;
+
+    dctf->dct4x4dc  = x264_dct4x4dc_ti;
+    dctf->idct4x4dc = x264_idct4x4dc_ti;
+#endif
 }
 
 
@@ -1088,4 +1121,7 @@ void x264_zigzag_init( uint32_t cpu, x264_zigzag_function_t *pf_progressive, x26
     }
 #endif
 #endif // !HIGH_BIT_DEPTH
+#if HAVE_TIC6X
+    pf_progressive->scan_4x4  = x264_zigzag_scan_4x4_frame_ti;
+#endif
 }

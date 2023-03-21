@@ -41,8 +41,58 @@
 #if HAVE_MSA
 #include "mips/mc.h"
 #endif
+#if HAVE_TIC6X
+#include "tic6x/mc.h"
+static inline void pixel_avg( pixel *restrict dst,  intptr_t i_dst_stride,
+                              pixel *restrict src1, intptr_t i_src1_stride,
+                              pixel *restrict src2, intptr_t i_src2_stride, int i_width, int i_height )
+{
+    switch( i_width )
+    {
+        case 20: x264_pixel_avg_w20_ti( dst, i_dst_stride, src1, i_src1_stride, src2, i_src2_stride, i_width, i_height ); break;
+        case 16: x264_pixel_avg_w16_ti( dst, i_dst_stride, src1, i_src1_stride, src2, i_src2_stride, i_width, i_height ); break;
+        case 12: x264_pixel_avg_w12_ti( dst, i_dst_stride, src1, i_src1_stride, src2, i_src2_stride, i_width, i_height ); break;
+        case 8:
+            {
+                if( i_height == 8 || i_height == 16 )
+                    x264_pixel_avg_w8e_ti( dst, i_dst_stride, src1, i_src1_stride, src2, i_src2_stride, i_width, i_height );
+                else
+                    x264_pixel_avg_w8o_ti( dst, i_dst_stride, src1, i_src1_stride, src2, i_src2_stride, i_width, i_height );
+                break;
+        }
+    }
+}
+/*****************************************************
+ * hpel_filter is called by x264_frame_filter        *
+ * for each mb row of encoding frame.                *
+ *                                                   *
+ * e.g. CIF (352x288), calls: 288 / 16 = 18.         *
+ * stride: 352 + 2 * 32 = 416                        *
+ * width: 352 + 16 = 368                             *
+ * height: 16 for all mb lines except last line (32) *
+ *****************************************************/
+static void hpel_filter_ti( pixel *restrict dsth, pixel *restrict dstv, pixel *restrict dstc, pixel *restrict src,
+                         intptr_t stride, int width, int height, int16_t *buf )
+{
+    x264_hpel_filter_v_ti( dstv, src, stride, width, height );
+    x264_hpel_filter_h_ti( dsth, src, stride, width, height );
+    x264_hpel_filter_h_ti( dstc, dstv, stride, width, height );
+}
+static void mc_chroma_ti( pixel *restrict dstu, pixel *restrict dstv, intptr_t i_dst_stride,
+                       pixel *restrict src, intptr_t i_src_stride,
+                       int mvx, int mvy,
+                       int i_width, int i_height )
+{
+    if ( i_width == 8 )
+        x264_mc_chroma_w8_ti( dstu, dstv, i_dst_stride, src, i_src_stride, mvx, mvy, i_width, i_height );
+    else
+        x264_mc_chroma_w4_ti( dstu, dstv, i_dst_stride, src, i_src_stride, mvx, mvy, i_width, i_height );
+}
+#endif
 
 
+#if HAVE_TIC6X
+#else
 static inline void pixel_avg( pixel *dst,  intptr_t i_dst_stride,
                               pixel *src1, intptr_t i_src1_stride,
                               pixel *src2, intptr_t i_src2_stride, int i_width, int i_height )
@@ -56,6 +106,7 @@ static inline void pixel_avg( pixel *dst,  intptr_t i_dst_stride,
         src2 += i_src2_stride;
     }
 }
+#endif
 
 static inline void pixel_avg_wxh( pixel *dst,  intptr_t i_dst,
                                   pixel *src1, intptr_t i_src1,
@@ -686,6 +737,26 @@ void x264_mc_init( uint32_t cpu, x264_mc_functions_t *pf, int cpu_independent )
 #if HAVE_MSA
     if( cpu&X264_CPU_MSA )
         x264_mc_init_mips( cpu, pf );
+#endif
+#if HAVE_TIC6X
+    pf->mc_chroma = mc_chroma_ti;
+
+    pf->copy[PIXEL_16x16] = x264_mc_copy_w16_ti;
+    pf->copy[PIXEL_8x8]   = x264_mc_copy_w8_ti;
+    pf->copy[PIXEL_4x4]   = x264_mc_copy_w4_ti;
+
+    pf->store_interleave_chroma       = x264_store_interleave_chroma_ti;
+    pf->load_deinterleave_chroma_fenc = x264_load_deinterleave_chroma_fenc_ti;
+    pf->load_deinterleave_chroma_fdec = x264_load_deinterleave_chroma_fdec_ti;
+
+    pf->plane_copy_interleave = x264_plane_copy_interleave_ti;
+    pf->plane_copy_deinterleave = x264_plane_copy_deinterleave_ti;
+    // pf->plane_copy_deinterlace = x264_plane_copy_deinterlace_ti;
+    // pf->plane_deinterlace = x264_plane_deinterlace_ti;
+
+    pf->hpel_filter = hpel_filter_ti;
+
+    pf->frame_init_lowres_core = x264_frame_init_lowres_core_ti;
 #endif
 
     if( cpu_independent )

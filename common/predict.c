@@ -46,6 +46,9 @@
 #if HAVE_MSA
 #   include "mips/predict.h"
 #endif
+#if HAVE_TIC6X
+#   include "tic6x/predict.h"
+#endif
 
 /****************************************************************************
  * 16x16 prediction for intra luma block
@@ -910,6 +913,16 @@ void x264_predict_16x16_init( uint32_t cpu, x264_predict_t pf[7] )
     x264_predict_16x16_init_aarch64( cpu, pf );
 #endif
 
+#if HAVE_TIC6X
+    pf[I_PRED_16x16_V ]     = x264_predict_16x16_v_ti;
+    pf[I_PRED_16x16_H ]     = x264_predict_16x16_h_ti;
+    pf[I_PRED_16x16_DC]     = x264_predict_16x16_dc_ti;
+    pf[I_PRED_16x16_P ]     = x264_predict_16x16_p_ti;
+    pf[I_PRED_16x16_DC_LEFT]= x264_predict_16x16_dc_left_ti;
+    pf[I_PRED_16x16_DC_TOP ]= x264_predict_16x16_dc_top_ti;
+    pf[I_PRED_16x16_DC_128 ]= x264_predict_16x16_dc_128_ti;
+#endif
+
 #if !HIGH_BIT_DEPTH
 #if HAVE_MSA
     if( cpu&X264_CPU_MSA )
@@ -951,6 +964,16 @@ void x264_predict_8x8c_init( uint32_t cpu, x264_predict_t pf[7] )
 
 #if HAVE_AARCH64
     x264_predict_8x8c_init_aarch64( cpu, pf );
+#endif
+
+#if HAVE_TIC6X
+    pf[I_PRED_CHROMA_V ]     = x264_predict_8x8c_v_ti;
+    pf[I_PRED_CHROMA_H ]     = x264_predict_8x8c_h_ti;
+    pf[I_PRED_CHROMA_DC]     = x264_predict_8x8c_dc_ti;
+    pf[I_PRED_CHROMA_P ]     = x264_predict_8x8c_p_ti;
+    pf[I_PRED_CHROMA_DC_LEFT]= x264_predict_8x8c_dc_left_ti;
+    pf[I_PRED_CHROMA_DC_TOP ]= x264_predict_8x8c_dc_top_ti;
+    pf[I_PRED_CHROMA_DC_128 ]= x264_predict_8x8c_dc_128_ti;
 #endif
 
 #if !HIGH_BIT_DEPTH
@@ -1049,6 +1072,21 @@ void x264_predict_4x4_init( uint32_t cpu, x264_predict_t pf[12] )
 
 #if HAVE_AARCH64
     x264_predict_4x4_init_aarch64( cpu, pf );
+#endif
+
+#if HAVE_TIC6X
+    pf[I_PRED_4x4_V]      = x264_predict_4x4_v_ti;
+    pf[I_PRED_4x4_H]      = x264_predict_4x4_h_ti;
+    pf[I_PRED_4x4_DC]     = x264_predict_4x4_dc_ti;
+    pf[I_PRED_4x4_DC_LEFT]= x264_predict_4x4_dc_left_ti;
+    pf[I_PRED_4x4_DC_TOP] = x264_predict_4x4_dc_top_ti;
+    pf[I_PRED_4x4_DC_128] = x264_predict_4x4_dc_128_ti;
+    pf[I_PRED_4x4_DDL]    = x264_predict_4x4_ddl_ti;
+    pf[I_PRED_4x4_DDR]    = x264_predict_4x4_ddr_ti;
+    pf[I_PRED_4x4_VR]     = x264_predict_4x4_vr_ti;
+    pf[I_PRED_4x4_HD]     = x264_predict_4x4_hd_ti;
+    pf[I_PRED_4x4_VL]     = x264_predict_4x4_vl_ti;
+    pf[I_PRED_4x4_HU]     = x264_predict_4x4_hu_ti;
 #endif
 }
 

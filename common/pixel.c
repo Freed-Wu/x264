@@ -45,6 +45,37 @@
 #if HAVE_MSA
 #   include "mips/pixel.h"
 #endif
+#if HAVE_TIC6X
+#   include "tic6x/pixel.h"
+// pixel-a.sa needs this function so don't make it static
+int x264_pixel_satd_16x16_ti( pixel *pix1, intptr_t i_pix1, pixel *pix2, intptr_t i_pix2 )
+{
+    return  x264_pixel_satd_8x8_ti( pix1,               i_pix1, pix2,               i_pix2 ) +
+    x264_pixel_satd_8x8_ti( pix1+8,             i_pix1, pix2+8,             i_pix2 ) +
+    x264_pixel_satd_8x8_ti( pix1+(i_pix1<<3),   i_pix1, pix2+(i_pix2<<3),   i_pix2 ) +
+    x264_pixel_satd_8x8_ti( pix1+(i_pix1<<3)+8, i_pix1, pix2+(i_pix2<<3)+8, i_pix2 );
+}
+static int x264_pixel_satd_16x8_ti( pixel *pix1, intptr_t i_pix1, pixel *pix2, intptr_t i_pix2 )
+{
+    return  x264_pixel_satd_8x8_ti( pix1,   i_pix1, pix2,   i_pix2 ) +
+    x264_pixel_satd_8x8_ti( pix1+8, i_pix1, pix2+8, i_pix2 );
+}
+static int x264_pixel_satd_8x16_ti( pixel *pix1, intptr_t i_pix1, pixel *pix2, intptr_t i_pix2 )
+{
+    return  x264_pixel_satd_8x8_ti( pix1,             i_pix1, pix2,             i_pix2 ) +
+    x264_pixel_satd_8x8_ti( pix1+(i_pix1<<3), i_pix1, pix2+(i_pix2<<3), i_pix2 );
+}
+static int x264_pixel_satd_8x4_ti( pixel *pix1, intptr_t i_pix1, pixel *pix2, intptr_t i_pix2 )
+{
+    return  x264_pixel_satd_4x4_ti( pix1,   i_pix1, pix2,   i_pix2 ) +
+    x264_pixel_satd_4x4_ti( pix1+4, i_pix1, pix2+4, i_pix2 );
+}
+static int x264_pixel_satd_4x8_ti( pixel *pix1, intptr_t i_pix1, pixel *pix2, intptr_t i_pix2 )
+{
+    return  x264_pixel_satd_4x4_ti( pix1,             i_pix1, pix2,             i_pix2 ) +
+    x264_pixel_satd_4x4_ti( pix1+(i_pix1<<2), i_pix1, pix2+(i_pix2<<2), i_pix2 );
+}
+#endif
 
 
 /****************************************************************************
@@ -506,6 +537,16 @@ SATD_X_DECL7( _xop )
 SATD_X_DECL7( _avx512 )
 #endif // !HIGH_BIT_DEPTH
 #endif
+#if HAVE_TIC6X
+/* x264_pixel_satd_x3_16x16_ti and x264_pixel_satd_x4_16x16_ti */
+/* x264_pixel_satd_x3_16x8_ti  and x264_pixel_satd_x4_16x8_ti  */
+/* x264_pixel_satd_x3_8x16_ti  and x264_pixel_satd_x4_8x16_ti  */
+/* x264_pixel_satd_x3_8x8_ti   and x264_pixel_satd_x4_8x8_ti   */
+/* x264_pixel_satd_x3_8x4_ti   and x264_pixel_satd_x4_8x4_ti   */
+/* x264_pixel_satd_x3_4x8_ti   and x264_pixel_satd_x4_4x8_ti   */
+/* x264_pixel_satd_x3_4x4_ti   and x264_pixel_satd_x4_4x4_ti   */
+SATD_X_DECL7( _ti )
+#endif
 
 #if !HIGH_BIT_DEPTH
 #if HAVE_ARMV6 || HAVE_AARCH64
@@ -591,6 +632,14 @@ INTRA_MBCMP(satd,  8x16, dc, h,  v, c, _sse4, _mmx2 )
 INTRA_MBCMP(satd,  8x16, dc, h,  v, c, _avx, _mmx2 )
 INTRA_MBCMP(satd,  8x16, dc, h,  v, c, _xop, _mmx2 )
 #endif
+#endif
+#if HAVE_TIC6X
+INTRA_MBCMP( sad,  4x4,   v, h, dc,  , _ti, _ti ) /* x264_intra_sad_x3_4x4_ti    */
+/* INTRA_MBCMP(satd,  4x4,   v, h, dc,  , _ti, _ti ) */ /* x264_intra_satd_x3_4x4_ti   */
+INTRA_MBCMP( sad,  8x8,  dc, h,  v, c, _ti, _ti ) /* x264_intra_sad_x3_8x8c_ti   */
+/* INTRA_MBCMP(satd,  8x8,  dc, h,  v, c, _ti, _ti ) */ /* x264_intra_satd_x3_8x8c_ti  */
+INTRA_MBCMP( sad, 16x16,  v, h, dc,  , _ti, _ti ) /* x264_intra_sad_x3_16x16_ti  */
+/* INTRA_MBCMP(satd, 16x16,  v, h, dc,  , _ti, _ti ) */ /* x264_intra_satd_x3_16x16_ti */
 #endif
 #if !HIGH_BIT_DEPTH && HAVE_ARMV6
 INTRA_MBCMP( sad,  4x4,   v, h, dc,  , _neon, _armv6 )
@@ -1507,6 +1556,32 @@ void x264_pixel_init( uint32_t cpu, x264_pixel_function_t *pixf )
 #endif // HAVE_MSA
 
 #endif // HIGH_BIT_DEPTH
+#if HAVE_TIC6X
+    INIT7( sad, _ti );
+    INIT7_NAME( sad_aligned, sad, _ti );
+    INIT4( sad_x3, _ti );
+    INIT4( sad_x4, _ti );
+
+    pixf->ssd[PIXEL_8x8] = x264_pixel_ssd_8x8_ti;
+
+    INIT7( satd, _ti );
+    INIT7( satd_x3, _ti );
+    INIT7( satd_x4, _ti );
+
+    pixf->var2[PIXEL_8x8]   = x264_pixel_var2_8x8_ti;
+
+    pixf->intra_sad_x3_4x4    = intra_sad_x3_4x4_ti;
+    pixf->intra_satd_x3_4x4   = x264_intra_satd_x3_4x4_ti;
+
+    pixf->intra_sad_x3_8x8c   = intra_sad_x3_8x8c_ti;
+    pixf->intra_satd_x3_8x8c  = x264_intra_satd_x3_8x8c_ti;
+
+    pixf->intra_sad_x3_16x16  = intra_sad_x3_16x16_ti;
+    pixf->intra_satd_x3_16x16 = x264_intra_satd_x3_16x16_ti;
+
+    // pixf->intra_satd_x4_4x4_h = x264_intra_satd_x4_4x4_h_ti;
+    // pixf->intra_satd_x4_4x4_v = x264_intra_satd_x4_4x4_v_ti;
+#endif
 #if HAVE_ALTIVEC
     if( cpu&X264_CPU_ALTIVEC )
     {

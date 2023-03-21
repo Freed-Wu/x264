@@ -43,6 +43,29 @@
 #if HAVE_MSA
 #   include "mips/quant.h"
 #endif
+#if HAVE_TIC6X
+#   include "tic6x/quant.h"
+static void dequant_4x4_ti( dctcoef dct[16], int dequant_mf[6][16], int i_qp )
+{
+    const int i_mf    = x264_dequant_div_lut[i_qp][1];     /* i_qp%6 */
+    const int i_qbits = x264_dequant_div_lut[i_qp][0] - 4; /* i_qp/6 - 4 */
+
+    if( i_qbits >= 0 )
+        x264_dequant_4x4_shl_ti( dct, dequant_mf[i_mf], i_qbits );
+    else
+        x264_dequant_4x4_shr_ti( dct, dequant_mf[i_mf], -i_qbits, 1 << (-i_qbits-1) );
+}
+static void dequant_4x4_dc_ti( dctcoef dct[16], int dequant_mf[6][16], int i_qp )
+{
+	const int i_mf    = x264_dequant_div_lut[i_qp][1];     /* i_qp%6 */
+    const int i_qbits = x264_dequant_div_lut[i_qp][0] - 6; /* i_qp/6 - 6 */
+
+    if( i_qbits >= 0 )
+        x264_dequant_4x4_dc_shl_ti( dct, dequant_mf[i_mf][0], i_qbits );
+    else
+        x264_dequant_4x4_dc_shr_ti( dct, dequant_mf[i_mf][0], -i_qbits, 1 << (-i_qbits-1) );
+}
+#endif
 
 #define QUANT_ONE( coef, mf, f ) \
 { \
@@ -802,6 +825,21 @@ void x264_quant_init( x264_t *h, uint32_t cpu, x264_quant_function_t *pf )
     }
 #endif
 #endif // HIGH_BIT_DEPTH
+
+#if HAVE_TIC6X
+    pf->quant_4x4 = x264_quant_4x4_ti;
+    pf->quant_4x4_dc = x264_quant_4x4_dc_ti;
+    pf->quant_2x2_dc = x264_quant_2x2_dc_ti;
+
+    pf->dequant_4x4 = dequant_4x4_ti;
+    pf->dequant_4x4_dc = dequant_4x4_dc_ti;
+
+    pf->decimate_score16 = x264_decimate_score16_ti;
+    pf->coeff_last[DCT_LUMA_4x4] = x264_coeff_last16_ti;
+#endif
+
+    pf->coeff_last[DCT_LUMA_DC]     = pf->coeff_last[DCT_CHROMAU_DC]  = pf->coeff_last[DCT_CHROMAV_DC] =
+    pf->coeff_last[DCT_CHROMAU_4x4] = pf->coeff_last[DCT_CHROMAV_4x4] = pf->coeff_last[DCT_LUMA_4x4];
     pf->coeff_last[DCT_LUMA_DC]     = pf->coeff_last[DCT_CHROMAU_DC]  = pf->coeff_last[DCT_CHROMAV_DC] =
     pf->coeff_last[DCT_CHROMAU_4x4] = pf->coeff_last[DCT_CHROMAV_4x4] = pf->coeff_last[DCT_LUMA_4x4];
     pf->coeff_last[DCT_CHROMA_AC]   = pf->coeff_last[DCT_CHROMAU_AC]  =

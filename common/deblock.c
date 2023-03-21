@@ -680,6 +680,9 @@ void x264_macroblock_deblock( x264_t *h )
 #if HAVE_MSA
 #include "mips/deblock.h"
 #endif
+#if HAVE_TIC6X
+#include "tic6x/deblock.h"
+#endif
 
 void x264_deblock_init( uint32_t cpu, x264_deblock_function_t *pf, int b_mbaff )
 {
@@ -817,6 +820,20 @@ void x264_deblock_init( uint32_t cpu, x264_deblock_function_t *pf, int b_mbaff )
     }
 #endif
 #endif // !HIGH_BIT_DEPTH
+
+#if HAVE_TIC6X
+    pf->deblock_luma[0] = x264_deblock_h_luma_ti;
+    pf->deblock_luma[1] = x264_deblock_v_luma_ti;
+    pf->deblock_chroma[0] = x264_deblock_h_chroma_ti;
+    pf->deblock_chroma[1] = x264_deblock_v_chroma_ti;
+
+    pf->deblock_luma_intra[0] = x264_deblock_h_luma_intra_ti;
+    pf->deblock_luma_intra[1] = x264_deblock_v_luma_intra_ti;
+    pf->deblock_chroma_intra[0] = x264_deblock_h_chroma_intra_ti;
+    pf->deblock_chroma_intra[1] = x264_deblock_v_chroma_intra_ti;
+
+    pf->deblock_strength = x264_deblock_strength_ti;
+#endif
 
     /* These functions are equivalent, so don't duplicate them. */
     pf->deblock_chroma_422_mbaff = pf->deblock_h_chroma_420;

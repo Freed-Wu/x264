@@ -197,6 +197,22 @@ SRCS_X += common/mips/dct-c.c \
 endif
 endif
 
+# TIC6X optims
+ifeq ($(SYS_ARCH),TIC6X)
+SRCASM_X += common/tic6x/bitstream-a.sa \
+            common/tic6x/dct-a.sa \
+            common/tic6x/deblock-a.sa \
+            common/tic6x/mc-a.sa \
+            common/tic6x/pixel-a.sa \
+            common/tic6x/predict-a.sa \
+            common/tic6x/quant-a.sa
+ifneq ($(findstring HAVE_BITDEPTH8 1, $(CONFIG)),)
+OBJASM += $(SRCASM_X:%.sa=%-8.o)
+endif
+ifneq ($(findstring HAVE_BITDEPTH10 1, $(CONFIG)),)
+OBJASM += $(SRCASM_X:%.sa=%-10.o)
+endif
+endif
 endif
 
 ifneq ($(HAVE_GETOPT_LONG),1)
@@ -309,6 +325,18 @@ $(OBJS) $(OBJASM) $(OBJSO) $(OBJCLI) $(OBJCHK) $(OBJCHK_8) $(OBJCHK_10) $(OBJEXA
 %-10.o: %.S
 	$(AS) $(ASFLAGS) -o $@ $< -DHIGH_BIT_DEPTH=1 -DBIT_DEPTH=10
 	-@ $(if $(STRIP), $(STRIP) -x $@)
+
+%.o: %.sa
+	$(AS) $(ASFLAGS) -fe=$@ $<
+	-@ $(if $(STRIP), $(STRIP) $@) # delete local/anonymous symbols, so they don't show up in oprofile
+
+%-8.o: %.sa
+	$(AS) $(ASFLAGS) -fe=$@ $< -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8
+	-@ $(if $(STRIP), $(STRIP) $@)
+
+%-10.o: %.sa
+	$(AS) $(ASFLAGS) -fe=$@ $< -DHIGH_BIT_DEPTH=1 -DBIT_DEPTH=10
+	-@ $(if $(STRIP), $(STRIP) $@)
 
 %.dll.o: %.rc x264.h
 	$(RC) $(RCFLAGS)$@ -DDLL $<
