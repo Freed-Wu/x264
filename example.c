@@ -60,8 +60,11 @@ int main( int argc, char **argv )
     _setmode( _fileno( stderr ), _O_BINARY );
 #endif
 
-    FAIL_IF_ERROR( !(argc > 1), "Example usage: example 352x288 <input.yuv >output.h264\n" );
-    FAIL_IF_ERROR( 2 != sscanf( argv[1], "%dx%d", &width, &height ), "resolution not specified or incorrect\n" );
+    // FAIL_IF_ERROR( !(argc > 1), "Example usage: example 352x288 <input.yuv >output.h264\n" );
+    // FAIL_IF_ERROR( 2 != sscanf( argv[1], "%dx%d", &width, &height ), "resolution not specified or incorrect\n" );
+
+    freopen("/mnt/yuv/352x288.yuv", "r", stdin);
+    freopen("/mnt/yuv/out.h264", "w", stdout);
 
     /* Get default params for preset/tuning */
     if( x264_param_default_preset( &param, "medium", NULL ) < 0 )
@@ -70,8 +73,8 @@ int main( int argc, char **argv )
     /* Configure non-default params */
     param.i_bitdepth = 8;
     param.i_csp = X264_CSP_I420;
-    param.i_width  = width;
-    param.i_height = height;
+    param.i_width  = 352;
+    param.i_height = 288;
     param.b_vfr_input = 0;
     param.b_repeat_headers = 1;
     param.b_annexb = 1;
